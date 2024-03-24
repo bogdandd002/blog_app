@@ -8,22 +8,26 @@ class DatabaseHelper {
 
   static Future<Database> _getDB() async {
     return openDatabase(join(await getDatabasesPath(), _dbName),
-        onCreate: (db, _version) async => await db.execute(
+        onCreate: (db, version) async => await db.execute(
             "CREATE TABLE Blog(id INTEGER PRIMARY KEY, authorName TEXT NOT NULL, title TEXT NOT NULL, desc TEXT NOT NULL );"),
         version: _version);
   }
 
-  static Future<int> addBlog(Blog blog) async {
+  static Future<int> addBlog(
+      String authorName, String title, String desc) async {
     final db = await _getDB();
-    return await db.insert("Blog", blog.toJson(),
+    var data = {'authorName': authorName, 'title': title, 'desc': desc};
+    return await db.insert("Blog", data,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  static Future<int> updateBlog(Blog blog) async {
+  static Future<int> updateBlog(
+      String authorName, String title, String desc) async {
     final db = await _getDB();
-    return await db.update("Blog", blog.toJson(),
+    var data = {'authorName': authorName, 'title': title, 'desc': desc};
+    return await db.update("Blog", data,
         where: 'id = ?',
-        whereArgs: [blog.id],
+        whereArgs: [1],
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -36,15 +40,17 @@ class DatabaseHelper {
     );
   }
 
-  static Future<List<Blog>?> getAllBlogs() async {
+  static Future<List<Map<String, dynamic>>> getAllBlogs() async {
     final db = await _getDB();
 
-    final List<Map<String, dynamic>> maps = await db.query("Blog");
+    // final List<Map<String, dynamic>> maps = await db.query("Blog");
 
-    if (maps.isEmpty) {
-      return null;
-    }
+    // if (db == null) {
+    //   return null;
+    // }
 
-    return List.generate(maps.length, (index) => Blog.fromJson(maps[index]));
+    // return List.generate(maps.length, (index) => Blog.fromJson(maps[index]));
+
+    return db.query('Blog', orderBy: 'id');
   }
 }
