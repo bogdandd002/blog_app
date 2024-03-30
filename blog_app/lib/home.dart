@@ -28,18 +28,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget blogsList() {
-    return Container(
+    return  Container(
       child: ListView.builder(
-        padding: EdgeInsets.only(top: 24),
+        padding: const EdgeInsets.only(top: 24),
         itemCount: _blogs.length,
         itemBuilder: (context, index) {
           return BlogTile(
-            author: _blogs[index]['authorName'],
-            title: _blogs[index]['title'],
-            desc: _blogs[index]['desc'],
-            imgUrl:
-                ('https://www.shutterstock.com/image-photo/woman-working-home-office-hand-on-370595594'),
-          );
+              author: _blogs[index]['authorName'],
+              title: _blogs[index]['title'],
+              desc: _blogs[index]['desc'],
+              imgUrl: MemoryImage(_blogs[index]['picture']));
         },
       ),
     );
@@ -78,7 +76,9 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (context) => const CreateBlog(),
                   ),
-                );
+                ).then((_) {
+                  initState();
+                });
               },
               child: const Icon(Icons.add),
             )
@@ -89,10 +89,13 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// ignore: must_be_immutable
 class BlogTile extends StatelessWidget {
-  final String imgUrl, title, desc, author;
+  final String title, desc, author;
+  MemoryImage imgUrl;
   BlogTile(
-      {required this.author,
+      {super.key, 
+      required this.author,
       required this.desc,
       required this.imgUrl,
       required this.title});
@@ -100,31 +103,41 @@ class BlogTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 24, right: 16, left: 16),
+      margin: const EdgeInsets.only(bottom: 24, right: 16, left: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-              child: Image.network(
-                imgUrl,
-                width: MediaQuery.of(context).size.width,
-                fit: BoxFit.cover,
-                height: 200,
+          Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                        color: Colors.green,
+                        image: DecorationImage(
+                          image: imgUrl,
+                          fit: BoxFit.cover,
+                        ))),
               ),
-            ),
+              Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 17),
+                  ),
+                  const SizedBox(height: 10),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$desc - By $author',
+                    style: const TextStyle(fontSize: 14),
+                  )
+                ],
+              )
+            ],
           ),
-          SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(fontSize: 17),
-          ),
-          SizedBox(height: 2),
-          Text(
-            '$desc - By $author',
-            style: TextStyle(fontSize: 14),
-          )
         ],
       ),
     );

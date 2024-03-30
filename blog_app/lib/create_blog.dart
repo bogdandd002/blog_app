@@ -47,8 +47,11 @@ class _CreateBlogState extends State<CreateBlog> {
   }
 
   Future<void> _addItem() async {
-    await DatabaseHelper.addBlog(_authorNameController.text,
-        _titleController.text, _descController.text);
+    await DatabaseHelper.addBlog(
+        _authorNameController.text,
+        _titleController.text,
+        _descController.text,
+        _selectedImage!.readAsBytesSync());
     print('Blog added');
     print('..number of items ${_blogs.length}');
   }
@@ -148,9 +151,10 @@ class _CreateBlogState extends State<CreateBlog> {
                         //   await DatabaseHelper.updateBlog(id);
                         // }
 
-                        _authorNameController.text = ' ';
+                        // _authorNameController.text = ' ';
 
                         Navigator.of(context).pop();
+                        setState(() {});
                       },
                       child: Text('Add Blog')),
                 ],
