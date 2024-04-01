@@ -2,6 +2,7 @@ import 'package:blog_app/blog_details.dart';
 import 'package:blog_app/create_blog.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/services/database_helper.dart';
+import 'package:blog_app/home.dart';
 
 class BlogDetails extends StatefulWidget {
   final int id;
@@ -50,7 +51,7 @@ class _BlogDetailsState extends State<BlogDetails> {
             ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(8)),
               child: Container(
-                  width: double.maxFinite,
+                  width: MediaQuery.of(context).size.width * 0.80,
                   height: 200,
                   decoration: BoxDecoration(
                       color: Colors.green,
@@ -118,14 +119,31 @@ class _BlogDetailsState extends State<BlogDetails> {
             const SizedBox(width: 100),
             FloatingActionButton.large(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateBlog(),
+                showDialog(
+                  useSafeArea: true,
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    scrollable: true,
+                    title: Text('Delete Blog'),
+                    content: Text('Are you sure you want to delete this blog?'),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          DatabaseHelper.deleteBlog(_blog[0]['id']);
+                          Navigator.pop(context);
+                          setState(() {});
+                        },
+                        child: Text('Yes'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('No'),
+                      ),
+                    ],
                   ),
-                ).then((_) {
-                  initState();
-                });
+                );
               },
               child: const Icon(Icons.delete_outlined),
             )
@@ -136,60 +154,59 @@ class _BlogDetailsState extends State<BlogDetails> {
   }
 }
 
-// Crating a blog tile widget
-// ignore: must_be_immutable
-class BlogTile extends StatelessWidget {
-  final String title, desc, author;
-  MemoryImage imgUrl;
-  int id;
-  BlogTile(
-      {super.key,
-      required this.id,
-      required this.author,
-      required this.desc,
-      required this.imgUrl,
-      required this.title});
+// // Crating a blog tile widget
+// // ignore: must_be_immutable
+// class BlogTile extends StatelessWidget {
+//   final String title, desc, author;
+//   MemoryImage imgUrl;
+//   int id;
+//   BlogTile(
+//       {super.key,
+//       required this.id,
+//       required this.author,
+//       required this.desc,
+//       required this.imgUrl,
+//       required this.title});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24, right: 16, left: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                child: Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                        color: Colors.green,
-                        image: DecorationImage(
-                          image: imgUrl,
-                          fit: BoxFit.cover,
-                        ))),
-              ),
-              Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 17, color: Colors.black),
-                  ),
-                  const SizedBox(height: 10),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$desc - By $author',
-                    style: const TextStyle(fontSize: 14),
-                  )
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       margin: const EdgeInsets.all(20),
+//       padding: EdgeInsets.all(20),
+//       child: Column(
+//         mainAxisSize: MainAxisSize.min,
+//         crossAxisAlignment: CrossAxisAlignment.center,
+//         children: [
+//               ClipRRect(
+//                 borderRadius: const BorderRadius.all(Radius.circular(8)),
+//                 child: FittedBox(
+//                   fit: BoxFit.cover,
+//                   child: Container(
+//                       height: 200,
+//                       padding: EdgeInsets.all(20),
+//                       decoration: BoxDecoration(
+//                           image: DecorationImage(
+//                             image: imgUrl,
+//                           ))),
+//                 ),
+//               ),
+//               Column(
+//                 children: [
+//                   const SizedBox(height: 16),
+//                   Text(
+//                     title,
+//                     style: const TextStyle(fontSize: 17, color: Colors.black),
+//                   ),
+//                   const SizedBox(height: 10),
+//                   const SizedBox(height: 2),
+//                   Text(
+//                     '$desc - By $author',
+//                     style: const TextStyle(fontSize: 14),
+//                   )
+//                 ],
+//               )
+//         ],
+//       ),
+//     );
+//   }
+// }

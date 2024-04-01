@@ -22,7 +22,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-
   @override
   void initState() {
     _refreshBlogs();
@@ -93,6 +92,7 @@ class _HomePageState extends State<HomePage> {
 // Crating a blog tile widget
 // ignore: must_be_immutable
 class BlogTile extends StatelessWidget {
+  final HomePage home = const HomePage();
   final String title, desc, author;
   MemoryImage imgUrl;
   int id;
@@ -129,13 +129,15 @@ class BlogTile extends StatelessWidget {
                 children: [
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => BlogDetails(id: id),
                         ),
-                      );
+                      ).then((_) {
+                        
+                      });
                     },
                     child: Text(
                       title,

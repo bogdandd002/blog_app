@@ -32,12 +32,12 @@ class DatabaseHelper {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  static Future<int> deleteBlog(Blog blog) async {
+  static Future<int> deleteBlog(int id) async {
     final db = await _getDB();
     return await db.delete(
       "Blog",
       where: 'id = ?',
-      whereArgs: [blog.id],
+      whereArgs: [id],
     );
   }
 
