@@ -3,25 +3,26 @@ import 'package:blog_app/create_blog.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/services/database_helper.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class BlogDetails extends StatefulWidget {
+  final int id;
+  const BlogDetails({required this.id, super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  // ignore: library_private_types_in_public_api
+  _BlogDetailsState createState() => _BlogDetailsState();
 }
 
-class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> _blogs = [];
+class _BlogDetailsState extends State<BlogDetails> {
+  List<Map<String, dynamic>> _blog = [];
   bool _isLoading = true;
 
   void _refreshBlogs() async {
-    final data = await DatabaseHelper.getAllBlogs();
+    final data = await DatabaseHelper.getBlog(widget.id);
     setState(() {
-      _blogs = data;
+      _blog = data;
       _isLoading = false;
     });
   }
-
 
   @override
   void initState() {
@@ -32,14 +33,45 @@ class _HomePageState extends State<HomePage> {
   Widget blogsList() {
     return ListView.builder(
       padding: const EdgeInsets.only(top: 24),
-      itemCount: _blogs.length,
+      itemCount: _blog.length,
       itemBuilder: (context, index) {
-        return BlogTile(
-            id: _blogs[index]['id'],
-            author: _blogs[index]['authorName'],
-            title: _blogs[index]['title'],
-            desc: _blogs[index]['desc'],
-            imgUrl: MemoryImage(_blogs[index]['picture']));
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            Text(
+              ' ${_blog[0]['title']} - ${_blog[0]['id']}',
+              style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              child: Container(
+                  width: double.maxFinite,
+                  height: 200,
+                  decoration: BoxDecoration(
+                      color: Colors.green,
+                      image: DecorationImage(
+                        image: MemoryImage(_blog[0]['picture']),
+                        fit: BoxFit.cover,
+                      ))),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'By:  ${_blog[0]['authorName']}',
+              style: const TextStyle(fontSize: 17, color: Colors.black),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '${_blog[0]['desc']}',
+              style: const TextStyle(fontSize: 15),
+            )
+          ],
+        );
+        // _blog[0]['id'];
       },
     );
   }
@@ -70,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            FloatingActionButton(
+            FloatingActionButton.large(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -81,7 +113,21 @@ class _HomePageState extends State<HomePage> {
                   initState();
                 });
               },
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.create_outlined),
+            ),
+            const SizedBox(width: 100),
+            FloatingActionButton.large(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateBlog(),
+                  ),
+                ).then((_) {
+                  initState();
+                });
+              },
+              child: const Icon(Icons.delete_outlined),
             )
           ],
         ),
@@ -128,19 +174,9 @@ class BlogTile extends StatelessWidget {
               Column(
                 children: [
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BlogDetails(id: id),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      title,
-                      style: const TextStyle(fontSize: 17, color: Colors.black),
-                    ),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 17, color: Colors.black),
                   ),
                   const SizedBox(height: 10),
                   const SizedBox(height: 2),

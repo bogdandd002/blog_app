@@ -22,10 +22,20 @@ class _CreateBlogState extends State<CreateBlog> {
 
   File? _selectedImage;
   final ImagePicker imgpicker = ImagePicker();
-  Future getImage() async {
+  Future getImage(int select) async {
+    
     try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.camera);
+     dynamic pickedFile;
+      if (select == 0) {
+        pickedFile =
+            await ImagePicker().pickImage(source: ImageSource.camera);
+      }
+      else if(select == 1)
+        {
+           pickedFile =
+            await ImagePicker().pickImage(source: ImageSource.gallery);
+        }
+
       if (pickedFile != null) {
         setState(() {
           _selectedImage = File(pickedFile!.path);
@@ -87,33 +97,54 @@ class _CreateBlogState extends State<CreateBlog> {
             const SizedBox(
               height: 10,
             ),
-            GestureDetector(
-              onTap: () {
-                getImage();
-              },
-              child: _selectedImage != null
-                  ? Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      height: 150,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6)),
-                      width: MediaQuery.of(context).size.width,
-                      child: Image.file(_selectedImage!))
-                  : Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      height: 70,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6)),
-                      width: 70,
-                      child: const Icon(
-                        Icons.add_a_photo,
-                        color: Colors.black45,
-                      ),
-                    ),
-            ),
-            const SizedBox(
+            _selectedImage == null
+                      ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    getImage(0);
+                  },
+                  child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 70,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6)),
+                          width: 70,
+                          child: const Icon(
+                            Icons.add_a_photo,
+                            color: Colors.black45,
+                          ),
+                        ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    getImage(1);
+                  },
+                  child:  Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 70,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6)),
+                          width: 70,
+                          child: const Icon(
+                            Icons.perm_media,
+                            color: Colors.black45,
+                          ),
+                        ),
+                ),
+              ],
+            ) : Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 150,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6)),
+                          width: MediaQuery.of(context).size.width,
+                          child: Image.file(_selectedImage!)),
+             const SizedBox(
               height: 8,
             ),
             Container(
@@ -156,7 +187,7 @@ class _CreateBlogState extends State<CreateBlog> {
                         Navigator.of(context).pop();
                         setState(() {});
                       },
-                      child: Text('Add Blog')),
+                      child: const Text('Add Blog')),
                 ],
               ),
             )

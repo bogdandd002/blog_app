@@ -10,7 +10,7 @@ class DatabaseHelper {
   static Future<Database> _getDB() async {
     return openDatabase(join(await getDatabasesPath(), _dbName),
         onCreate: (db, version) async => await db.execute(
-            "CREATE TABLE Blog(id INTEGER PRIMARY KEY, authorName TEXT NOT NULL, title TEXT NOT NULL, desc TEXT NOT NULL, picture BLOB );"),
+            "CREATE TABLE Blog(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, authorName TEXT NOT NULL, title TEXT NOT NULL, desc TEXT NOT NULL, picture BLOB );"),
         version: _version);
   }
 
@@ -38,6 +38,16 @@ class DatabaseHelper {
       "Blog",
       where: 'id = ?',
       whereArgs: [blog.id],
+    );
+  }
+
+   static Future<List<Map<String, dynamic>>> getBlog(int id) async {
+    final db = await _getDB();
+    return await db.query(
+      "Blog",
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1
     );
   }
 
