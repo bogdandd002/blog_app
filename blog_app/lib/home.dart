@@ -34,11 +34,12 @@ class _HomePageState extends State<HomePage> {
       itemCount: _blogs.length,
       itemBuilder: (context, index) {
         return BlogTile(
-            id: _blogs[index]['id'],
-            author: _blogs[index]['authorName'],
-            title: _blogs[index]['title'],
-            desc: _blogs[index]['desc'],
-            imgUrl: MemoryImage(_blogs[index]['picture']));
+          id: _blogs[index]['id'],
+          author: _blogs[index]['authorName'],
+          title: _blogs[index]['title'],
+          desc: _blogs[index]['desc'],
+          imgUrl: MemoryImage(_blogs[index]['picture']),
+        );
       },
     );
   }
@@ -74,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CreateBlog(),
+                    builder: (context) => const CreateBlog(id: 0),
                   ),
                 ).then((_) {
                   initState();
@@ -92,17 +93,17 @@ class _HomePageState extends State<HomePage> {
 // Crating a blog tile widget
 // ignore: must_be_immutable
 class BlogTile extends StatelessWidget {
-  final HomePage home = const HomePage();
   final String title, desc, author;
   MemoryImage imgUrl;
   int id;
-  BlogTile(
-      {super.key,
-      required this.id,
-      required this.author,
-      required this.desc,
-      required this.imgUrl,
-      required this.title});
+  BlogTile({
+    super.key,
+    required this.id,
+    required this.author,
+    required this.desc,
+    required this.imgUrl,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +136,7 @@ class BlogTile extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => BlogDetails(id: id),
                         ),
-                      ).then((_) {
-                        
-                      });
+                      ).then((_) {});
                     },
                     child: Text(
                       title,

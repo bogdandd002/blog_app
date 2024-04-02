@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:blog_app/services/database_helper.dart';
 
 class CreateBlog extends StatefulWidget {
-  const CreateBlog({super.key});
+  final int id;
+  const CreateBlog({required this.id, super.key});
 
   @override
   State<CreateBlog> createState() => _CreateBlogState();
@@ -16,25 +18,43 @@ class _CreateBlogState extends State<CreateBlog> {
 
   bool _isLoading = true;
 
-  final TextEditingController _authorNameController = TextEditingController();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descController = TextEditingController();
+  var _authorNameController = TextEditingController();
+  var _titleController = TextEditingController();
+  var _descController = TextEditingController();
 
   File? _selectedImage;
   final ImagePicker imgpicker = ImagePicker();
-  Future getImage(int select) async {
+  List<Map<String, dynamic>> _blog = [];
+
+  void _refreshBlogs() async {
+    final data = await DatabaseHelper.getBlog(widget.id);
+    setState(() {
+      _blog = data;
+      if (widget.id != 0) {
+      _authorNameController.text = _blog[0]['authorName'];
+      _titleController.text = _blog[0]['title'];
+      _descController.text = _blog[0]['desc'];
+      _selectedImage = File.fromRawPath(Uint8List(_blogs[0]['picture']));
+    }
+      // _isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshBlogs();
     
+  }
+
+  Future getImage(int select) async {
     try {
-     dynamic pickedFile;
+      dynamic pickedFile;
       if (select == 0) {
-        pickedFile =
-            await ImagePicker().pickImage(source: ImageSource.camera);
+        pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+      } else if (select == 1) {
+        pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
       }
-      else if(select == 1)
-        {
-           pickedFile =
-            await ImagePicker().pickImage(source: ImageSource.gallery);
-        }
 
       if (pickedFile != null) {
         setState(() {
@@ -98,14 +118,14 @@ class _CreateBlogState extends State<CreateBlog> {
               height: 10,
             ),
             _selectedImage == null
-                      ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    getImage(0);
-                  },
-                  child: Container(
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          getImage(0);
+                        },
+                        child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 16),
                           height: 70,
                           decoration: BoxDecoration(
@@ -117,12 +137,12 @@ class _CreateBlogState extends State<CreateBlog> {
                             color: Colors.black45,
                           ),
                         ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    getImage(1);
-                  },
-                  child:  Container(
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          getImage(1);
+                        },
+                        child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 16),
                           height: 70,
                           decoration: BoxDecoration(
@@ -134,17 +154,18 @@ class _CreateBlogState extends State<CreateBlog> {
                             color: Colors.black45,
                           ),
                         ),
-                ),
-              ],
-            ) : Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 150,
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6)),
-                          width: MediaQuery.of(context).size.width,
-                          child: Image.file(_selectedImage!)),
-             const SizedBox(
+                      ),
+                    ],
+                  )
+                : Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 150,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6)),
+                    width: MediaQuery.of(context).size.width,
+                    child: Image.file(_selectedImage!)),
+            const SizedBox(
               height: 8,
             ),
             Container(

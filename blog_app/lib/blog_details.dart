@@ -21,7 +21,7 @@ class _BlogDetailsState extends State<BlogDetails> {
     final data = await DatabaseHelper.getBlog(widget.id);
     setState(() {
       _blog = data;
-      _isLoading = false;
+      // _isLoading = false;
     });
   }
 
@@ -108,9 +108,8 @@ class _BlogDetailsState extends State<BlogDetails> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CreateBlog(),
-                  ),
-                ).then((_) {
+                    builder: (context) => CreateBlog(id: widget.id),
+                ),).then((_) {
                   initState();
                 });
               },
@@ -130,8 +129,14 @@ class _BlogDetailsState extends State<BlogDetails> {
                       ElevatedButton(
                         onPressed: () {
                           DatabaseHelper.deleteBlog(_blog[0]['id']);
-                          Navigator.pop(context);
-                          setState(() {});
+                          // Navigator.of(context).pop();
+                          // setState(() {});
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
                         },
                         child: Text('Yes'),
                       ),
