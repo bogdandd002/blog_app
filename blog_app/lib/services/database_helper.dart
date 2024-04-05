@@ -17,19 +17,27 @@ class DatabaseHelper {
   static Future<int> addBlog(
       String authorName, String title, String desc, Uint8List picture) async {
     final db = await _getDB();
-    var data = {'authorName': authorName, 'title': title, 'desc': desc, 'picture': picture};
+    var data = {
+      'authorName': authorName,
+      'title': title,
+      'desc': desc,
+      'picture': picture
+    };
     return await db.insert("Blog", data,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  static Future<int> updateBlog(
-      String authorName, String title, String desc, Uint8List picture) async {
-    final db = await _getDB();
-    var data = {'authorName': authorName, 'title': title, 'desc': desc, 'picture': picture};
-    return await db.update("Blog", data,
-        where: 'id = ?',
-        whereArgs: [1],
-        conflictAlgorithm: ConflictAlgorithm.replace);
+  static Future<int> updateBlog(int id, String authorName, String titleName, String desc, Uint8List picture) async {
+    var db = await _getDB();
+    var data = {
+      'authorName': authorName,
+      'title': titleName,
+      'desc': desc,
+      'picture': picture,
+      
+    };
+    return await db.update('Blog', data, where: 'id = ?', whereArgs: [id]
+        );
   }
 
   static Future<int> deleteBlog(int id) async {
@@ -41,14 +49,9 @@ class DatabaseHelper {
     );
   }
 
-   static Future<List<Map<String, dynamic>>> getBlog(int id) async {
+  static Future<List<Map<String, dynamic>>> getBlog(int id) async {
     final db = await _getDB();
-    return await db.query(
-      "Blog",
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1
-    );
+    return await db.query("Blog", where: 'id = ?', whereArgs: [id], limit: 1);
   }
 
   static Future<List<Map<String, dynamic>>> getAllBlogs() async {

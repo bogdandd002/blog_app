@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:blog_app/blog_details.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:blog_app/services/database_helper.dart';
+import 'package:blog_app/home.dart';
 
 class CreateBlog extends StatefulWidget {
   final int id;
@@ -19,23 +21,24 @@ class _CreateBlogState extends State<CreateBlog> {
   bool _isLoading = true;
 
   var _authorNameController = TextEditingController();
-  var _titleController = TextEditingController();
-  var _descController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _descController = TextEditingController();
 
   File? _selectedImage;
   final ImagePicker imgpicker = ImagePicker();
   List<Map<String, dynamic>> _blog = [];
+  dynamic _picture, pictureParam;
 
   void _refreshBlogs() async {
     final data = await DatabaseHelper.getBlog(widget.id);
     setState(() {
       _blog = data;
       if (widget.id != 0) {
-      _authorNameController.text = _blog[0]['authorName'];
-      _titleController.text = _blog[0]['title'];
-      _descController.text = _blog[0]['desc'];
-      _selectedImage = File.fromRawPath(Uint8List(_blogs[0]['picture']));
-    }
+        _authorNameController.text = _blog[0]['authorName'];
+        _titleController.text = _blog[0]['title'];
+        _descController.text = _blog[0]['desc'];
+        _picture = _blog[0]['desc'];
+      }
       // _isLoading = false;
     });
   }
@@ -44,7 +47,6 @@ class _CreateBlogState extends State<CreateBlog> {
   void initState() {
     super.initState();
     _refreshBlogs();
-    
   }
 
   Future getImage(int select) async {
@@ -68,13 +70,13 @@ class _CreateBlogState extends State<CreateBlog> {
     }
   }
 
-  void _refresBlogs() async {
-    final data = await DatabaseHelper.getAllBlogs();
-    setState(() {
-      _blogs = data;
-      _isLoading = false;
-    });
-  }
+  // void _refresBlogs() async {
+  //   final data = await DatabaseHelper.getAllBlogs();
+  //   setState(() {
+  //     _blogs = data;
+  //     _isLoading = false;
+  //   });
+  // }
 
   Future<void> _addItem() async {
     await DatabaseHelper.addBlog(
@@ -82,8 +84,16 @@ class _CreateBlogState extends State<CreateBlog> {
         _titleController.text,
         _descController.text,
         _selectedImage!.readAsBytesSync());
-    print('Blog added');
-    print('..number of items ${_blogs.length}');
+  }
+
+  Future<void> _updateBlog() async {
+    if (_selectedImage != null) {
+      pictureParam = _selectedImage;
+    } else {
+      pictureParam = _picture;
+    }
+    await DatabaseHelper.updateBlog(widget.id, _authorNameController.text,
+        _titleController.text, _descController.text, _picture);
   }
 
   @override
@@ -117,7 +127,7 @@ class _CreateBlogState extends State<CreateBlog> {
             const SizedBox(
               height: 10,
             ),
-            _selectedImage == null
+            _selectedImage == null && widget.id == 0
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -161,10 +171,62 @@ class _CreateBlogState extends State<CreateBlog> {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     height: 150,
                     decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6)),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                     width: MediaQuery.of(context).size.width,
-                    child: Image.file(_selectedImage!)),
+                    child: widget.id == 0
+                        ? Image.file(_selectedImage!)
+                        : Container(
+                            decoration: BoxDecoration(
+                                color: Colors.green,
+                                image: DecorationImage(
+                                  image: MemoryImage(_blog[0]['picture']),
+                                  fit: BoxFit.cover,
+                                )))),
+            _selectedImage != null || widget.id != 0
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          getImage(0);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 70,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6)),
+                          width: 70,
+                          child: const Icon(
+                            Icons.add_a_photo,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          getImage(1);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 70,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6)),
+                          width: 70,
+                          child: const Icon(
+                            Icons.perm_media,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox(
+                    height: 1,
+                  ),
             const SizedBox(
               height: 8,
             ),
@@ -195,9 +257,26 @@ class _CreateBlogState extends State<CreateBlog> {
                   ),
                   ElevatedButton(
                       onPressed: () async {
-                        // if (id == null) {
-                        await _addItem();
-                        // }
+                        if (widget.id == 0) {
+                          _addItem();
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
+                        } else {
+                          _updateBlog();
+                          setState(() {});
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
+                        }
 
                         // if (id != null) {
                         //   await DatabaseHelper.updateBlog(id);
@@ -205,10 +284,12 @@ class _CreateBlogState extends State<CreateBlog> {
 
                         // _authorNameController.text = ' ';
 
-                        Navigator.of(context).pop();
-                        setState(() {});
+                        // Navigator.of(context).pop();
+                        // setState(() {});
                       },
-                      child: const Text('Add Blog')),
+                      child: widget.id == 0
+                          ? const Text('Add Blog')
+                          : const Text('Save changes')),
                 ],
               ),
             )
