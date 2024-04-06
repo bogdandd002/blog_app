@@ -12,13 +12,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _blogs = [];
+  List<Map<String, dynamic>> filteredBlogs = [];
   bool _isLoading = true;
 
   void _refreshBlogs() async {
     final data = await DatabaseHelper.getAllBlogs();
     setState(() {
       _blogs = data;
+      filteredBlogs = _blogs;
       _isLoading = false;
+    });
+  }
+
+  void filterBlogs(String query) {
+    setState(() {
+      filteredBlogs = _blogs
+          .where((item) =>
+              item['desc'].toLowerCase().contains(query.toLowerCase()) ||
+              item['authorName'].toLowerCase().contains(query.toLowerCase()) ||
+              item['title'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
   }
 
@@ -31,14 +44,14 @@ class _HomePageState extends State<HomePage> {
   Widget blogsList() {
     return ListView.builder(
       padding: const EdgeInsets.only(top: 24),
-      itemCount: _blogs.length,
+      itemCount: filteredBlogs.length,
       itemBuilder: (context, index) {
         return BlogTile(
-          id: _blogs[index]['id'],
-          author: _blogs[index]['authorName'],
-          title: _blogs[index]['title'],
-          desc: _blogs[index]['desc'],
-          imgUrl: MemoryImage(_blogs[index]['picture']),
+          id: filteredBlogs[index]['id'],
+          author: filteredBlogs[index]['authorName'],
+          title: filteredBlogs[index]['title'],
+          desc: filteredBlogs[index]['desc'],
+          imgUrl: MemoryImage(filteredBlogs[index]['picture']),
         );
       },
     );
@@ -64,7 +77,18 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),
-      body: blogsList(),
+      body: Column(
+        children: [
+          TextFormField(
+            onChanged: filterBlogs,
+            decoration: const InputDecoration(
+              hintText: "Search here",
+              prefixIcon: Icon(Icons.search),
+            ),
+          ),
+          Expanded(child: blogsList())
+        ],
+      ),
       floatingActionButton: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
