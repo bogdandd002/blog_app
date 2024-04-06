@@ -49,6 +49,13 @@ class DatabaseHelper {
     );
   }
 
+  static Future<int> deleteBlogs(List<int> deleteBloglist) async {
+    final db = await _getDB();
+    return await db.delete('Blog',
+          where: 'id IN (${List.filled(deleteBloglist.length, '?').join(',')})',
+          whereArgs: deleteBloglist);
+  }
+
   static Future<List<Map<String, dynamic>>> getBlog(int id) async {
     final db = await _getDB();
     return await db.query("Blog", where: 'id = ?', whereArgs: [id], limit: 1);

@@ -2,6 +2,7 @@ import 'package:blog_app/blog_details.dart';
 import 'package:blog_app/create_blog.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/services/database_helper.dart';
+import 'package:flutter/rendering.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,6 +15,9 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _blogs = [];
   List<Map<String, dynamic>> filteredBlogs = [];
   bool _isLoading = true;
+  bool _selectionFlag = false;
+  List<int> blogIdList = List.empty(growable: true);
+  late String nrSelectedblogs;
 
   void _refreshBlogs() async {
     final data = await DatabaseHelper.getAllBlogs();
@@ -35,6 +39,17 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void longPress() {
+    setState(() {
+      if (blogIdList.isEmpty) {
+        _selectionFlag = false;
+      } else {
+        _selectionFlag = true;
+        nrSelectedblogs = blogIdList.length.toString();
+      }
+    });
+  }
+
   @override
   void initState() {
     _refreshBlogs();
@@ -52,6 +67,16 @@ class _HomePageState extends State<HomePage> {
           title: filteredBlogs[index]['title'],
           desc: filteredBlogs[index]['desc'],
           imgUrl: MemoryImage(filteredBlogs[index]['picture']),
+          callback: (int id) {
+            id--;
+            if (blogIdList.contains(filteredBlogs[id]['id'])) {
+              blogIdList.remove(filteredBlogs[id]['id']);
+            } else {
+              blogIdList.add(filteredBlogs[id]['id']);
+            }
+            print(blogIdList);
+            longPress();
+          },
         );
       },
     );
@@ -94,19 +119,77 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateBlog(id: 0),
-                  ),
-                ).then((_) {
-                  initState();
-                });
-              },
-              child: const Icon(Icons.add),
-            )
+            _selectionFlag == false
+                ? FloatingActionButton.large(
+                    tooltip: 'Add blog',
+                    backgroundColor: Colors.greenAccent,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreateBlog(id: 0),
+                        ),
+                      ).then((_) {
+                        initState();
+                      });
+                    },
+                    child: const Icon(Icons.add),
+                  )
+                : FloatingActionButton.large(
+                    tooltip: 'Delete',
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 12,
+                    onPressed: () {
+                      showDialog(
+                        useSafeArea: true,
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          scrollable: true,
+                          title: blogIdList.length == 1 ? 
+                            const Text('Delete blog')
+                          : const Text('Delete multiple blogs'),
+                          content: blogIdList.length == 1 ? 
+                            const Text('Are you sure you want to delete this blog?')
+                          : const Text('Are you sure you want to delete this multiple blogs?'),
+                          actions: [
+                            ElevatedButton(
+                              onPressed: () {
+                                DatabaseHelper.deleteBlogs(blogIdList);
+                                // Navigator.of(context).pop();
+                                // setState(() {});
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomePage(),
+                                  ),
+                                );
+                              },
+                              child: const Text('Yes'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text('No'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.delete_outline,
+                            size: 40,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            nrSelectedblogs,
+                            style: const TextStyle(fontSize: 40),
+                          ),
+                        ])),
           ],
         ),
       ),
@@ -116,18 +199,27 @@ class _HomePageState extends State<HomePage> {
 
 // Crating a blog tile widget
 // ignore: must_be_immutable
-class BlogTile extends StatelessWidget {
+class BlogTile extends StatefulWidget {
   final String title, desc, author;
   MemoryImage imgUrl;
   int id;
-  BlogTile({
-    super.key,
-    required this.id,
-    required this.author,
-    required this.desc,
-    required this.imgUrl,
-    required this.title,
-  });
+  final Function callback;
+
+  BlogTile(
+      {super.key,
+      required this.id,
+      required this.author,
+      required this.desc,
+      required this.imgUrl,
+      required this.title,
+      required this.callback});
+
+  @override
+  _BlogTileState createState() => new _BlogTileState();
+}
+
+class _BlogTileState extends State<BlogTile> {
+  bool _selected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -144,33 +236,49 @@ class BlogTile extends StatelessWidget {
                 child: Container(
                     height: 200,
                     decoration: BoxDecoration(
-                        color: Colors.green,
                         image: DecorationImage(
-                          image: imgUrl,
-                          fit: BoxFit.cover,
-                        ))),
+                      image: widget.imgUrl,
+                      fit: BoxFit.cover,
+                    ))),
               ),
               Column(
                 children: [
                   const SizedBox(height: 16),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: _selected == false
+                            ? Colors.white
+                            : Colors.redAccent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)),
+                        minimumSize: Size(
+                            MediaQuery.of(context).size.width * 0.50,
+                            40), // Make it responsive
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        textStyle: TextStyle(fontSize: 14)),
                     onPressed: () async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BlogDetails(id: id),
+                          builder: (context) => BlogDetails(id: widget.id),
                         ),
                       ).then((_) {});
                     },
+                    onLongPress: () {
+                      setState(() {
+                        _selected = !_selected;
+                      });
+                      widget.callback(widget.id);
+                    },
                     child: Text(
-                      title,
+                      widget.title,
                       style: const TextStyle(fontSize: 17, color: Colors.black),
                     ),
                   ),
                   const SizedBox(height: 10),
                   const SizedBox(height: 2),
                   Text(
-                    '$desc - By $author',
+                    '$widget.desc - By $widget.author',
                     style: const TextStyle(fontSize: 14),
                   )
                 ],
