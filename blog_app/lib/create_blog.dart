@@ -27,7 +27,7 @@ class _CreateBlogState extends State<CreateBlog> {
   File? _selectedImage;
   final ImagePicker imgpicker = ImagePicker();
   List<Map<String, dynamic>> _blog = [];
-  dynamic _picture, pictureParam;
+  dynamic pictureParam;
 
   void _refreshBlogs() async {
     final data = await DatabaseHelper.getBlog(widget.id);
@@ -37,7 +37,6 @@ class _CreateBlogState extends State<CreateBlog> {
         _authorNameController.text = _blog[0]['authorName'];
         _titleController.text = _blog[0]['title'];
         _descController.text = _blog[0]['desc'];
-        _picture = _blog[0]['desc'];
       }
       // _isLoading = false;
     });
@@ -88,12 +87,12 @@ class _CreateBlogState extends State<CreateBlog> {
 
   Future<void> _updateBlog() async {
     if (_selectedImage != null) {
-      pictureParam = _selectedImage;
+      pictureParam = _selectedImage!.readAsBytesSync();
     } else {
-      pictureParam = _picture;
+      pictureParam = _blog[0]['picture'];
     }
     await DatabaseHelper.updateBlog(widget.id, _authorNameController.text,
-        _titleController.text, _descController.text, _picture);
+        _titleController.text, _descController.text, pictureParam);
   }
 
   @override
@@ -178,12 +177,17 @@ class _CreateBlogState extends State<CreateBlog> {
                     child: widget.id == 0
                         ? Image.file(_selectedImage!)
                         : Container(
-                            decoration: BoxDecoration(
-                                color: Colors.green,
-                                image: DecorationImage(
-                                  image: MemoryImage(_blog[0]['picture']),
-                                  fit: BoxFit.cover,
-                                )))),
+                          child: _selectedImage == null ?  Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  image: DecorationImage(
+                                    image: MemoryImage(_blog[0]['picture']),
+                                    fit: BoxFit.cover,
+                                  ))) : 
+                                  
+                                     Image.file(_selectedImage!),
+                                  
+                        ),),
             _selectedImage != null || widget.id != 0
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -208,6 +212,9 @@ class _CreateBlogState extends State<CreateBlog> {
                       GestureDetector(
                         onTap: () {
                           getImage(1);
+                          setState(() {
+                            
+                          });
                         },
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 16),
