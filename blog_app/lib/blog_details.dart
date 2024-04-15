@@ -18,7 +18,7 @@ class _BlogDetailsState extends State<BlogDetails> {
   bool _isLoading = true;
 
   void _refreshBlogs() async {
-    final data = await DatabaseHelper.getBlog(widget.id);
+    final data = await DatabaseHelper().getBlog(widget.id);
     setState(() {
       _blog = data;
       // _isLoading = false;
@@ -62,10 +62,23 @@ class _BlogDetailsState extends State<BlogDetails> {
             ),
             const SizedBox(height: 16),
             Text(
-              'By:  ${_blog[0]['authorName']}',
-              style: const TextStyle(fontSize: 17, color: Colors.black),
+              'Created on: ${_blog[0]['dateCreated']}',
+              style: const TextStyle(fontSize: 15),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Last updated: ${_blog[0]['lastUpdated']}',
+              style: const TextStyle(fontSize: 15),
             ),
             const SizedBox(height: 16),
+            Text(
+              'By:  ${_blog[0]['authorName']}',
+              style: const TextStyle(fontSize: 17, color: Colors.black),
+            ),  
+            const SizedBox(height: 16),
+            const Text('Descrition content:', 
+            style: TextStyle(fontWeight: FontWeight.bold),),
+            const SizedBox(height:5),
             Text(
               '${_blog[0]['desc']}',
               style: const TextStyle(fontSize: 15),
@@ -123,12 +136,12 @@ class _BlogDetailsState extends State<BlogDetails> {
                   context: context,
                   builder: (context) => AlertDialog(
                     scrollable: true,
-                    title: Text('Delete Blog'),
-                    content: Text('Are you sure you want to delete this blog?'),
+                    title: const Text('Delete Blog'),
+                    content: const Text('Are you sure you want to delete this blog?'),
                     actions: [
                       ElevatedButton(
                         onPressed: () {
-                          DatabaseHelper.deleteBlog(_blog[0]['id']);
+                          DatabaseHelper().deleteBlog(_blog[0]['id']);
                           // Navigator.of(context).pop();
                           // setState(() {});
                           Navigator.push(
@@ -138,13 +151,13 @@ class _BlogDetailsState extends State<BlogDetails> {
                             ),
                           );
                         },
-                        child: Text('Yes'),
+                        child: const Text('Yes'),
                       ),
                       ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: Text('No'),
+                        child: const Text('No'),
                       ),
                     ],
                   ),
@@ -159,59 +172,3 @@ class _BlogDetailsState extends State<BlogDetails> {
   }
 }
 
-// // Crating a blog tile widget
-// // ignore: must_be_immutable
-// class BlogTile extends StatelessWidget {
-//   final String title, desc, author;
-//   MemoryImage imgUrl;
-//   int id;
-//   BlogTile(
-//       {super.key,
-//       required this.id,
-//       required this.author,
-//       required this.desc,
-//       required this.imgUrl,
-//       required this.title});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       margin: const EdgeInsets.all(20),
-//       padding: EdgeInsets.all(20),
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.center,
-//         children: [
-//               ClipRRect(
-//                 borderRadius: const BorderRadius.all(Radius.circular(8)),
-//                 child: FittedBox(
-//                   fit: BoxFit.cover,
-//                   child: Container(
-//                       height: 200,
-//                       padding: EdgeInsets.all(20),
-//                       decoration: BoxDecoration(
-//                           image: DecorationImage(
-//                             image: imgUrl,
-//                           ))),
-//                 ),
-//               ),
-//               Column(
-//                 children: [
-//                   const SizedBox(height: 16),
-//                   Text(
-//                     title,
-//                     style: const TextStyle(fontSize: 17, color: Colors.black),
-//                   ),
-//                   const SizedBox(height: 10),
-//                   const SizedBox(height: 2),
-//                   Text(
-//                     '$desc - By $author',
-//                     style: const TextStyle(fontSize: 14),
-//                   )
-//                 ],
-//               )
-//         ],
-//       ),
-//     );
-//   }
-// }

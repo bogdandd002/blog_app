@@ -18,7 +18,8 @@ class _CreateBlogState extends State<CreateBlog> {
 
   bool _isLoading = true;
 
-  var _authorNameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _authorNameController = TextEditingController();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
 
@@ -28,7 +29,7 @@ class _CreateBlogState extends State<CreateBlog> {
   dynamic pictureParam;
 
   void _refreshBlogs() async {
-    final data = await DatabaseHelper.getBlog(widget.id);
+    final data = await DatabaseHelper().getBlog(widget.id);
     setState(() {
       _blog = data;
       if (widget.id != 0) {
@@ -76,11 +77,13 @@ class _CreateBlogState extends State<CreateBlog> {
   // }
 
   Future<void> _addItem() async {
-    await DatabaseHelper.addBlog(
+   
+      await DatabaseHelper().addBlog(
         _authorNameController.text,
         _titleController.text,
         _descController.text,
         _selectedImage!.readAsBytesSync());
+    
   }
 
   Future<void> _updateBlog() async {
@@ -89,7 +92,7 @@ class _CreateBlogState extends State<CreateBlog> {
     } else {
       pictureParam = _blog[0]['picture'];
     }
-    await DatabaseHelper.updateBlog(widget.id, _authorNameController.text,
+    await DatabaseHelper().updateBlog(widget.id, _authorNameController.text,
         _titleController.text, _descController.text, pictureParam);
   }
 
@@ -239,22 +242,28 @@ class _CreateBlogState extends State<CreateBlog> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: <Widget>[
-                  TextField(
+                  TextFormField(
                     controller: _authorNameController,
                     decoration: const InputDecoration(hintText: "Author Name"),
                     onChanged: (value) {
                       authorName = value;
                     },
                   ),
-                  TextField(
+                  TextFormField(
                     controller: _titleController,
                     decoration: const InputDecoration(hintText: "Title"),
                     onChanged: (value) {
                       title = value;
                     },
                   ),
-                  TextField(
+                  TextFormField(
                     controller: _descController,
+                    validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Please enter a valid Desc';
+                        }
+                        return null;
+                      },
                     decoration: const InputDecoration(hintText: "Desc"),
                     onChanged: (value) {
                       desc = value;
@@ -262,6 +271,7 @@ class _CreateBlogState extends State<CreateBlog> {
                   ),
                   ElevatedButton(
                       onPressed: () async {
+                        
                         if (widget.id == 0) {
                           _addItem();
 

@@ -19,8 +19,8 @@ class _HomePageState extends State<HomePage> {
   List<int> blogIdList = List.empty(growable: true);
   late String nrSelectedblogs;
 
-  void _refreshBlogs() async {
-    final data = await DatabaseHelper.getAllBlogs();
+  void refreshBlogs() async {
+    final data = await DatabaseHelper().getAllBlogs();
     setState(() {
       _blogs = data;
       filteredBlogs = _blogs;
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _refreshBlogs();
+    refreshBlogs();
     super.initState();
   }
 
@@ -67,6 +67,7 @@ class _HomePageState extends State<HomePage> {
           title: filteredBlogs[index]['title'],
           desc: filteredBlogs[index]['desc'],
           imgUrl: MemoryImage(filteredBlogs[index]['picture']),
+          created: filteredBlogs[index]['dateCreated'],
           callback: (int id) {
             id--;
             if (blogIdList.contains(filteredBlogs[id]['id'])) {
@@ -146,16 +147,18 @@ class _HomePageState extends State<HomePage> {
                         context: context,
                         builder: (context) => AlertDialog(
                           scrollable: true,
-                          title: blogIdList.length == 1 ? 
-                            const Text('Delete blog')
-                          : const Text('Delete multiple blogs'),
-                          content: blogIdList.length == 1 ? 
-                            const Text('Are you sure you want to delete this blog?')
-                          : const Text('Are you sure you want to delete this multiple blogs?'),
+                          title: blogIdList.length == 1
+                              ? const Text('Delete blog')
+                              : const Text('Delete multiple blogs'),
+                          content: blogIdList.length == 1
+                              ? const Text(
+                                  'Are you sure you want to delete this blog?')
+                              : const Text(
+                                  'Are you sure you want to delete this multiple blogs?'),
                           actions: [
                             ElevatedButton(
                               onPressed: () {
-                                DatabaseHelper.deleteBlogs(blogIdList);
+                                DatabaseHelper().deleteBlogs(blogIdList);
                                 // Navigator.of(context).pop();
                                 // setState(() {});
                                 Navigator.push(
@@ -204,6 +207,7 @@ class BlogTile extends StatefulWidget {
   MemoryImage imgUrl;
   int id;
   final Function callback;
+  String created;
 
   BlogTile(
       {super.key,
@@ -212,10 +216,12 @@ class BlogTile extends StatefulWidget {
       required this.desc,
       required this.imgUrl,
       required this.title,
+      required this.created,
       required this.callback});
 
   @override
-  _BlogTileState createState() => new _BlogTileState();
+  // ignore: library_private_types_in_public_api
+  _BlogTileState createState() => _BlogTileState();
 }
 
 class _BlogTileState extends State<BlogTile> {
@@ -254,8 +260,8 @@ class _BlogTileState extends State<BlogTile> {
                         minimumSize: Size(
                             MediaQuery.of(context).size.width * 0.50,
                             40), // Make it responsive
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        textStyle: TextStyle(fontSize: 14)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        textStyle: const TextStyle(fontSize: 14)),
                     onPressed: () async {
                       Navigator.push(
                         context,
@@ -278,9 +284,14 @@ class _BlogTileState extends State<BlogTile> {
                   const SizedBox(height: 10),
                   const SizedBox(height: 2),
                   Text(
-                    '$widget.desc - By $widget.author',
+                    'By ${widget.author}',
                     style: const TextStyle(fontSize: 14),
-                  )
+                  ),
+                  const SizedBox(height: 10),
+                  // Text(
+                  //   widget.desc,
+                  //   style: const TextStyle(fontSize: 14),
+                  // )
                 ],
               )
             ],
