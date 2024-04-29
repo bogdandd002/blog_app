@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+// creating blog model class
 class Blog {
   final int? id;
   final String authorName;
@@ -7,8 +8,9 @@ class Blog {
   final String desc;
   final String dateCreated;
   final String lastUpdated;
-  final Uint8List picture;
+  final Uint8List picture; //image is stored as blob in database
 
+// declaring constructor
   Blog(
       {this.id,
       required this.authorName,
@@ -18,6 +20,7 @@ class Blog {
       required this.lastUpdated,
       required this.picture});
 
+//parsing from JSON to model
   factory Blog.fromJson(Map<String, dynamic> json) => Blog(
       id: json['id'],
       authorName: json['authorName'],
@@ -26,7 +29,8 @@ class Blog {
       dateCreated: json['dateCreated'] as String,
       lastUpdated: json['lastUpdated'] as String,
       picture: json['picture']);
-
+      
+//parsing from model to JSON
   Map<String, dynamic> toJson() => {
         'id': id,
         'authorName': authorName,

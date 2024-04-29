@@ -1,4 +1,5 @@
-import 'package:blog_app/blog_details.dart';
+// this file display individual blog details 
+//it also provide 2 option for edit and delete the blog
 import 'package:blog_app/create_blog.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/services/database_helper.dart';
@@ -9,28 +10,30 @@ class BlogDetails extends StatefulWidget {
   const BlogDetails({required this.id, super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _BlogDetailsState createState() => _BlogDetailsState();
+
+  BlogDetailsState createState() => BlogDetailsState();
 }
 
-class _BlogDetailsState extends State<BlogDetails> {
+class BlogDetailsState extends State<BlogDetails> {
   List<Map<String, dynamic>> _blog = [];
-  bool _isLoading = true;
+  late List<Map<String, dynamic>> data; 
 
+//this method fetch the blog by id using dataHelper 
   void _refreshBlogs() async {
     final data = await DatabaseHelper().getBlog(widget.id);
     setState(() {
       _blog = data;
-      // _isLoading = false;
     });
   }
 
+//initiate widget state and display fetched data
   @override
   void initState() {
     _refreshBlogs();
     super.initState();
   }
 
+// creating a custom widget that display all the data for the blog record 
   Widget blogsList() {
     return ListView.builder(
       padding: const EdgeInsets.only(top: 24),
@@ -41,7 +44,7 @@ class _BlogDetailsState extends State<BlogDetails> {
           children: [
             const SizedBox(height: 16),
             Text(
-              ' ${_blog[0]['title']} - ${_blog[0]['id']}',
+              ' ${_blog[0]['title']} ', // display title - we only expect 1 blog in list so we use blog[0]
               style: const TextStyle(
                   fontSize: 20,
                   color: Colors.black,
@@ -56,11 +59,12 @@ class _BlogDetailsState extends State<BlogDetails> {
                   decoration: BoxDecoration(
                       color: Colors.green,
                       image: DecorationImage(
-                        image: MemoryImage(_blog[0]['picture']),
+                        image: MemoryImage(_blog[0]['picture']), //displaying stored picture
                         fit: BoxFit.cover,
                       ))),
             ),
             const SizedBox(height: 16),
+          // below we display the date created and when it was last updated
             Text(
               'Created on: ${_blog[0]['dateCreated']}',
               style: const TextStyle(fontSize: 15),
@@ -72,28 +76,30 @@ class _BlogDetailsState extends State<BlogDetails> {
             ),
             const SizedBox(height: 16),
             Text(
-              'By:  ${_blog[0]['authorName']}',
+              'By:  ${_blog[0]['authorName']}', // display author name
               style: const TextStyle(fontSize: 17, color: Colors.black),
-            ),  
+            ),
             const SizedBox(height: 16),
-            const Text('Descrition content:', 
-            style: TextStyle(fontWeight: FontWeight.bold),),
-            const SizedBox(height:5),
+            const Text(
+              'Descrition content:', // display descrition content 
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 5),
             Text(
               '${_blog[0]['desc']}',
               style: const TextStyle(fontSize: 15),
             )
           ],
         );
-        // _blog[0]['id'];
       },
     );
   }
 
+//building the page
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( // creating app br similar to the one in the rest of the pages
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -110,19 +116,22 @@ class _BlogDetailsState extends State<BlogDetails> {
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),
-      body: blogsList(),
+      body: blogsList(), // we are using above created custom widget blogsList
       floatingActionButton: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            FloatingActionButton.large(
+            FloatingActionButton.large( 
+              key: const Key('edit'), // we are creating a floating button for editing 
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreateBlog(id: widget.id),
-                ),).then((_) {
+                    // we are routing to create blog but we pass data to populate the forms in the create blog page
+                    builder: (context) => CreateBlog(id: widget.id), 
+                  ),
+                ).then((_) {
                   initState();
                 });
               },
@@ -130,24 +139,27 @@ class _BlogDetailsState extends State<BlogDetails> {
             ),
             const SizedBox(width: 100),
             FloatingActionButton.large(
+              key: const Key('delete'), // we are creating delete floating button 
               onPressed: () {
                 showDialog(
                   useSafeArea: true,
                   context: context,
+                  // below we are creating allert dialog for the user to confirm if they want to delete the blog
                   builder: (context) => AlertDialog(
                     scrollable: true,
                     title: const Text('Delete Blog'),
-                    content: const Text('Are you sure you want to delete this blog?'),
+                    content: const Text(
+                        'Are you sure you want to delete this blog?'),
                     actions: [
                       ElevatedButton(
                         onPressed: () {
-                          DatabaseHelper().deleteBlog(_blog[0]['id']);
-                          // Navigator.of(context).pop();
-                          // setState(() {});
+                          // we are calling the methot to delete from DB
+                          DatabaseHelper().deleteBlog(_blog[0]['id']); 
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const HomePage(),
+                              // once deleted we are rerouting to home page and reset state with new DB data
+                              builder: (context) => const HomePage(), 
                             ),
                           );
                         },
@@ -171,4 +183,3 @@ class _BlogDetailsState extends State<BlogDetails> {
     );
   }
 }
-

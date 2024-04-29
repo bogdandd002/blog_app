@@ -1,33 +1,36 @@
+//this is our home page that is displayed when the app start first time
+
 import 'package:blog_app/blog_details.dart';
 import 'package:blog_app/create_blog.dart';
 import 'package:flutter/material.dart';
 import 'package:blog_app/services/database_helper.dart';
-import 'package:flutter/rendering.dart';
 
+//below we are creating a statefull widget which will host our app
 class HomePage extends StatefulWidget {
+  
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> _blogs = [];
-  List<Map<String, dynamic>> filteredBlogs = [];
-  bool _isLoading = true;
-  bool _selectionFlag = false;
-  List<int> blogIdList = List.empty(growable: true);
+class HomePageState extends State<HomePage> {
+  List<Map<String, dynamic>> _blogs = []; //is storing data fetched from DB
+  List<Map<String, dynamic>> filteredBlogs = []; // store the filtered blogs
+  bool _selectionFlag = false; //store if a blog tile has been selected by long press
+  List<int> blogIdList = List.empty(growable: true); // store a list of id's that need to be deleted
   late String nrSelectedblogs;
 
   void refreshBlogs() async {
-    final data = await DatabaseHelper().getAllBlogs();
+    final data = await DatabaseHelper().getAllBlogs(); //fetching all blogs from DB 
     setState(() {
       _blogs = data;
       filteredBlogs = _blogs;
-      _isLoading = false;
     });
   }
 
+//method below si filtering the blogs from our list based on what we enter in the search box
+//setState is called every time we type in so the results are displayed instantly
   void filterBlogs(String query) {
     setState(() {
       filteredBlogs = _blogs
@@ -39,6 +42,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+//method below is flaging if we are selecting blog tiles by long pressing on them
+//it also increment/decrement a count which is displayed next to the trash icon
   void longPress() {
     setState(() {
       if (blogIdList.isEmpty) {
@@ -50,17 +55,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+//init state function and we are also caling refreshBlogs to refres the list from DB
   @override
   void initState() {
     refreshBlogs();
     super.initState();
   }
 
+//custom widget to display the list
   Widget blogsList() {
     return ListView.builder(
       padding: const EdgeInsets.only(top: 24),
       itemCount: filteredBlogs.length,
       itemBuilder: (context, index) {
+        /*we are using our own custom widget called BlogTile
+        we are passing all the data from filteredBlogs so it is displayed only what we ar tiping in the 
+        search bar. We are also passing a callback function which add the selected blogs to a list
+        so we can delete multiple blogs at once  */ 
         return BlogTile(
           id: filteredBlogs[index]['id'],
           author: filteredBlogs[index]['authorName'],
@@ -75,7 +86,7 @@ class _HomePageState extends State<HomePage> {
             } else {
               blogIdList.add(filteredBlogs[id]['id']);
             }
-            print(blogIdList);
+            //we are calling method below to count selection 
             longPress();
           },
         );
@@ -83,9 +94,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+//below we start displaying the tiles and elements
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //creating app bar 
       appBar: AppBar(
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -103,8 +116,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),
+    //creating body 
       body: Column(
         children: [
+          //inserting search bar
           TextFormField(
             onChanged: filterBlogs,
             decoration: const InputDecoration(
@@ -112,9 +127,15 @@ class _HomePageState extends State<HomePage> {
               prefixIcon: Icon(Icons.search),
             ),
           ),
+
+          //we are displaiyng the custom made above blogList widget in here
           Expanded(child: blogsList())
         ],
       ),
+    
+    /* we are creating a floating action button below which it looks like an add button
+    but it change the state to a red trash button once the blog tile is long pressed (selected)
+    */
       floatingActionButton: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
@@ -122,13 +143,14 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             _selectionFlag == false
                 ? FloatingActionButton.large(
+                  key: const Key('add blog'),
                     tooltip: 'Add blog',
                     backgroundColor: Colors.greenAccent,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const CreateBlog(id: 0),
+                          builder: (context) => CreateBlog(id: 0), //we are directing the user to CreateBlog page in here
                         ),
                       ).then((_) {
                         initState();
@@ -136,6 +158,7 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: const Icon(Icons.add),
                   )
+                  //delete button is displayed only if blog tile is selected
                 : FloatingActionButton.large(
                     tooltip: 'Delete',
                     backgroundColor: Colors.redAccent,
@@ -145,11 +168,12 @@ class _HomePageState extends State<HomePage> {
                       showDialog(
                         useSafeArea: true,
                         context: context,
+                        //we are implementing an alert box once the delete button is pressed
                         builder: (context) => AlertDialog(
                           scrollable: true,
                           title: blogIdList.length == 1
-                              ? const Text('Delete blog')
-                              : const Text('Delete multiple blogs'),
+                              ? const Text('Delete blog') // if a single blog tile is selected
+                              : const Text('Delete multiple blogs'), //if multiple blog tiles are selected
                           content: blogIdList.length == 1
                               ? const Text(
                                   'Are you sure you want to delete this blog?')
@@ -164,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const HomePage(),
+                                    builder: (context) => const HomePage(), //once deleted we are redirecting to home page an reset state with new list 
                                   ),
                                 );
                               },
@@ -174,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () {
                                 Navigator.pop(context);
                               },
-                              child: Text('No'),
+                              child: const Text('No'),
                             ),
                           ],
                         ),
@@ -200,7 +224,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Crating a blog tile widget
+// Crating a blog tile widget to be used in blogList
 // ignore: must_be_immutable
 class BlogTile extends StatefulWidget {
   final String title, desc, author;
@@ -250,6 +274,7 @@ class _BlogTileState extends State<BlogTile> {
               Column(
                 children: [
                   const SizedBox(height: 16),
+                  //we making the title of the blocg clickable 
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: _selected == false
@@ -266,11 +291,11 @@ class _BlogTileState extends State<BlogTile> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BlogDetails(id: widget.id),
+                          builder: (context) => BlogDetails(id: widget.id), //redirecting user to blog detail once pressed
                         ),
                       ).then((_) {});
                     },
-                    onLongPress: () {
+                    onLongPress: () { //function for on long press on the title
                       setState(() {
                         _selected = !_selected;
                       });
